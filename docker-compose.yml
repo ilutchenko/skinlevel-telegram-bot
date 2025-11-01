@@ -1,0 +1,6 @@
+services:
+  cosmetic-bot:
+    build: .
+    image: cosmetic-bot
+    command: python3 bot.py
+    restart: unless-stopped
