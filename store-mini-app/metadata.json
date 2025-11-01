@@ -1,0 +1,5 @@
+{
+  "name": "Cosmetics Store Mini App",
+  "description": "An e-commerce mini app for a cosmetics store, designed for Telegram. Users can browse products, add them to a cart, and place an order.",
+  "requestFramePermissions": []
+}
