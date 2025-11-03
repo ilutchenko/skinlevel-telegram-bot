@@ -22,8 +22,8 @@ const ProductList: React.FC<ProductListProps> = ({ products }) => {
     return (
         <div>
             <header className="p-4 text-center">
-                <h1 className="text-3xl font-bold text-text dark:text-gray-100">Our Collection</h1>
-                <p className="text-hint mt-1">Discover premium cosmetics for you</p>
+                <h1 className="text-3xl font-bold text-text dark:text-gray-100">Наша коллекция</h1>
+                <p className="text-hint mt-1">Откройте премиальную косметику специально для вас</p>
             </header>
             <div className="flex flex-col">
                 {categories.map(category => (

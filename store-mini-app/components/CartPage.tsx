@@ -32,7 +32,7 @@ const CartPage: React.FC<CartPageProps> = ({ setView }) => {
     
     useEffect(() => {
         if (totalItems > 0) {
-            tg.MainButton.setText(`Make an Order ($${totalPrice.toFixed(2)})`);
+            tg.MainButton.setText(`Оформить заказ ($${totalPrice.toFixed(2)})`);
             tg.MainButton.show();
             tg.MainButton.onClick(handleConfirmOrder);
         } else {
@@ -53,13 +53,13 @@ const CartPage: React.FC<CartPageProps> = ({ setView }) => {
                 <button onClick={() => setView('products')} className="p-2 mr-2 rounded-full hover:bg-secondary dark:hover:bg-gray-700">
                     <BackIcon className="w-6 h-6 text-text" />
                 </button>
-                <h1 className="text-3xl font-bold text-text">Your Cart</h1>
+                <h1 className="text-3xl font-bold text-text">Корзина</h1>
             </header>
             {cartArray.length === 0 ? (
                 <div className="text-center py-20">
-                    <p className="text-hint text-lg">Your cart is empty.</p>
+                    <p className="text-hint text-lg">Ваша корзина пуста.</p>
                     <button onClick={() => setView('products')} className="mt-4 px-6 py-2 bg-primary text-primary-text rounded-lg font-semibold">
-                        Start Shopping
+                        Перейти к покупкам
                     </button>
                 </div>
             ) : (
@@ -73,7 +73,7 @@ const CartPage: React.FC<CartPageProps> = ({ setView }) => {
                                     <p className="text-sm text-hint">${product.price.toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                     <button onClick={() => removeFromCart(product.id)} className="p-2 rounded-full bg-primary bg-opacity-20 text-primary hover:bg-opacity-30 transition">
+                                     <button onClick={() => removeFromCart(product.id)} className="p-2 rounded-full border border-primary bg-background text-primary hover:bg-primary hover:text-primary-text transition">
                                         <MinusIcon className="w-4 h-4" />
                                     </button>
                                     <span className="w-6 text-center font-bold text-lg text-text">{quantity}</span>
@@ -89,16 +89,16 @@ const CartPage: React.FC<CartPageProps> = ({ setView }) => {
                     </div>
                     <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-600">
                         <div className="flex justify-between text-lg font-bold text-text">
-                            <span>Total</span>
+                            <span>Итого</span>
                             <span>${totalPrice.toFixed(2)}</span>
                         </div>
-                        <p className="text-right text-hint text-sm mt-1">{totalItems} items</p>
+                        <p className="text-right text-hint text-sm mt-1">{totalItems} шт.</p>
                          <div className="mt-6">
                             <button
                                 onClick={handleConfirmOrder}
                                 className="w-full py-3 bg-primary text-primary-text rounded-xl shadow-lg hover:opacity-90 transition-opacity font-semibold text-lg"
                             >
-                                Make an Order
+                                Оформить заказ
                             </button>
                         </div>
                     </div>

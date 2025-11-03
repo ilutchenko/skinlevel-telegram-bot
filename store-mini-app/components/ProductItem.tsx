@@ -13,9 +13,16 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
     const itemInCart = cartItems.get(product.id);
 
     return (
-        <div className="bg-secondary dark:bg-gray-700 rounded-lg shadow-md overflow-hidden flex flex-col transition-transform hover:scale-105">
-            <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
-            <div className="p-4 flex flex-col flex-grow">
+        <div className="bg-secondary dark:bg-gray-700 rounded-lg shadow-md overflow-hidden flex items-stretch transition-transform hover:scale-105">
+            <div className="relative w-1/3 flex-shrink-0">
+                <div className="w-full" style={{ paddingTop: '100%' }} />
+                <img
+                    src={product.image}
+                    alt={product.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+            </div>
+            <div className="p-4 flex flex-col flex-grow w-2/3">
                 <h3 className="text-lg font-semibold text-text">{product.name}</h3>
                 <p className="text-sm text-hint mt-1 flex-grow">{product.description}</p>
                 <div className="flex justify-between items-center mt-4">
@@ -27,7 +34,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
                         <div className="flex items-center gap-2">
                             {itemInCart && itemInCart.quantity > 0 && (
                                 <>
-                                    <button onClick={() => removeFromCart(product.id)} className="p-2 rounded-full bg-primary bg-opacity-20 text-primary hover:bg-opacity-30 transition">
+                                    <button onClick={() => removeFromCart(product.id)} className="p-2 rounded-full border border-primary bg-background text-primary hover:bg-primary hover:text-primary-text transition">
                                         <MinusIcon className="w-4 h-4" />
                                     </button>
                                     <span className="w-6 text-center font-bold text-lg text-text">{itemInCart.quantity}</span>
@@ -38,7 +45,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product }) => {
                             </button>
                         </div>
                     ) : (
-                        <span className="text-sm font-semibold text-red-500 dark:text-red-400">Out of Stock</span>
+                        <span className="text-sm font-semibold text-red-500 dark:text-red-400">Нет в наличии</span>
                     )}
                 </div>
             </div>

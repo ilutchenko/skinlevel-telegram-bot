@@ -25,7 +25,7 @@ const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({ setView }) => {
                             {totalItems}
                         </span>
                     </div>
-                    <span className="ml-3 font-semibold text-lg">View Cart</span>
+                    <span className="ml-3 font-semibold text-lg">Открыть корзину</span>
                 </div>
                 <span className="font-bold text-lg">${totalPrice.toFixed(2)}</span>
             </button>

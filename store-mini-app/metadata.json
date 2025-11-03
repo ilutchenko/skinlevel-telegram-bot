@@ -1,5 +1,5 @@
 {
-  "name": "Cosmetics Store Mini App",
-  "description": "An e-commerce mini app for a cosmetics store, designed for Telegram. Users can browse products, add them to a cart, and place an order.",
+  "name": "Мини-приложение магазина косметики",
+  "description": "Мини-приложение интернет-магазина косметики для Telegram. Пользователи могут просматривать товары, добавлять их в корзину и оформлять заказ.",
   "requestFramePermissions": []
 }

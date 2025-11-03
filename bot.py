@@ -1,6 +1,9 @@
 import asyncio
+import html
+import json
 import logging
 import os
+from decimal import Decimal, InvalidOperation
 
 from dotenv import load_dotenv
 
@@ -18,6 +21,7 @@ from aiogram.types import (
     KeyboardButton,
     Message,
     ReplyKeyboardMarkup,
+    WebAppInfo,
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -29,6 +33,7 @@ ADMIN_IDS = {
     for user_id in os.getenv("ADMIN_IDS", "").split(",")
     if user_id.strip().isdigit()
 }
+SHOP_WEB_APP_URL = os.getenv("SHOP_WEB_APP_URL")
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -113,9 +118,15 @@ def ensure_answers_capacity(answers: list, upto_idx: int) -> None:
 
 
 def main_keyboard(user_telegram_id: int) -> ReplyKeyboardMarkup:
+    shop_button = (
+        KeyboardButton(text="🛒 Магазин", web_app=WebAppInfo(url=SHOP_WEB_APP_URL))
+        if SHOP_WEB_APP_URL
+        else KeyboardButton(text="🛒 Магазин")
+    )
+
     buttons = [
         [KeyboardButton(text="🧴 Подобрать уход"), KeyboardButton(text="🗓️ Запись")],
-        [KeyboardButton(text="🛒 Магазин"), KeyboardButton(text="❓ Помощь")],
+        [shop_button, KeyboardButton(text="❓ Помощь")],
     ]
 
     if user_telegram_id in ADMIN_IDS:
@@ -268,7 +279,116 @@ async def handle_booking_request(message: Message) -> None:
 
 
 async def show_shop(message: Message) -> None:
-    await message.answer("Магазин готовится к запуску. Следите за новостями.")
+    if not SHOP_WEB_APP_URL:
+        await message.answer(
+            "Магазин временно недоступен. Пожалуйста, попробуйте позже."
+        )
+        return
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Открыть мини-магазин",
+                    web_app=WebAppInfo(url=SHOP_WEB_APP_URL),
+                )
+            ]
+        ]
+    )
+
+    await message.answer(
+        "Жмите на кнопку ниже, чтобы открыть мини-магазин и оформить заказ.",
+        reply_markup=keyboard,
+    )
+
+
+async def handle_shop_order(message: Message) -> None:
+    if not message.web_app_data or not message.web_app_data.data:
+        await message.answer("Не удалось получить данные заказа.")
+        return
+
+    try:
+        payload = json.loads(message.web_app_data.data)
+    except json.JSONDecodeError:
+        logger.exception("Failed to decode web_app_data payload: %s", message.web_app_data.data)
+        await message.answer("Произошла ошибка при обработке заказа.")
+        return
+
+    items = payload.get("items")
+    if not isinstance(items, list) or not items:
+        await message.answer("Похоже, корзина была пустой — заказ не создан.")
+        return
+
+    def _to_decimal(value) -> Decimal | None:
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, TypeError, ValueError):
+            return None
+
+    order_lines = []
+    total_calculated = Decimal("0")
+
+    for idx, raw_item in enumerate(items, start=1):
+        name = str(raw_item.get("name", "Без названия"))
+        quantity_raw = raw_item.get("quantity", 0)
+        try:
+            quantity = int(quantity_raw)
+        except (TypeError, ValueError):
+            quantity = 0
+
+        price = _to_decimal(raw_item.get("price")) or Decimal("0")
+        line_total = price * quantity
+        total_calculated += line_total
+
+        order_lines.append(
+            f"{idx}. {html.escape(name)} — {quantity} шт. x ${price:.2f} = ${line_total:.2f}"
+        )
+
+    declared_total = _to_decimal(payload.get("totalPrice"))
+    total_display = declared_total if declared_total is not None else total_calculated
+
+    if declared_total is not None and abs(declared_total - total_calculated) > Decimal("0.01"):
+        logger.warning(
+            "Order total mismatch for user %s: declared %s vs calculated %s",
+            message.from_user.id if message.from_user else "unknown",
+            declared_total,
+            total_calculated,
+        )
+        order_lines.append(
+            f"Пересчитанная сумма: ${total_calculated:.2f} (передано: ${declared_total:.2f})"
+        )
+        total_display = total_calculated
+
+    order_text = "\n".join(order_lines)
+    user_note = (
+        "<b>Спасибо!</b>\n"
+        "Запрос на оформление заказа передан.\n\n"
+        f"{order_text}\n"
+        f"<b>Итого:</b> ${total_display:.2f}"
+    )
+    await message.answer(user_note)
+
+    if ADMIN_IDS:
+        user = message.from_user
+        user_link = "неизвестный покупатель"
+        if user:
+            escaped_name = html.escape(user.full_name or str(user.id))
+            user_link = f"<a href='tg://user?id={user.id}'>{escaped_name}</a>"
+
+        admin_text = (
+            f"🛒 <b>Новый заказ</b>\n"
+            f"Покупатель: {user_link}\n"
+            f"{order_text}\n"
+            f"<b>Итого:</b> ${total_display:.2f}"
+        )
+
+        for admin_id in ADMIN_IDS:
+            if user and admin_id == user.id:
+                continue
+            try:
+                await message.bot.send_message(admin_id, admin_text)
+            except Exception:
+                logger.exception("Failed to notify admin %s about new order.", admin_id)
 
 
 async def show_help(message: Message) -> None:
@@ -304,6 +424,7 @@ async def main() -> None:
     dp = Dispatcher(storage=MemoryStorage())
 
     dp.message.register(start, CommandStart())
+    dp.message.register(handle_shop_order, F.web_app_data)
     dp.message.register(handle_fill_form, F.text == "🧴 Подобрать уход")
     dp.message.register(handle_booking_request, F.text == "🗓️ Запись")
     dp.message.register(show_shop, F.text == "🛒 Магазин")
