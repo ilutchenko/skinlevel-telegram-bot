@@ -93,14 +93,6 @@ const CartPage: React.FC<CartPageProps> = ({ setView }) => {
                             <span>${totalPrice.toFixed(2)}</span>
                         </div>
                         <p className="text-right text-hint text-sm mt-1">{totalItems} шт.</p>
-                         <div className="mt-6">
-                            <button
-                                onClick={handleConfirmOrder}
-                                className="w-full py-3 bg-primary text-primary-text rounded-xl shadow-lg hover:opacity-90 transition-opacity font-semibold text-lg"
-                            >
-                                Оформить заказ
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}
