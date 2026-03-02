@@ -2,5 +2,7 @@ services:
   cosmetic-bot:
     build: .
     image: cosmetic-bot
+    env_file:
+      - .env
     command: python3 bot.py
     restart: unless-stopped

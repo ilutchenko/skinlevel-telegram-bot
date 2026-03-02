@@ -22,7 +22,9 @@ from aiogram.types import (
 )
 from questionnaire import handle_answer, handle_fill_form, restart_test
 
-load_dotenv(".env")
+# Prefer process environment (e.g. Docker `env_file`) and only fallback to local .env.
+if os.getenv("TOKEN") is None:
+    load_dotenv(".env")
 
 TOKEN = os.getenv("TOKEN")
 ADMIN_IDS = {
